@@ -1,4 +1,4 @@
-package com.miniature.player;
+package com.miniaturemusic.app;
 
 import android.os.Bundle;
 import com.getcapacitor.BridgeActivity;
