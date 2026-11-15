@@ -29,14 +29,33 @@ jobs:
           npx cap init Miniature com.miniaturemusic.v2 --web-dir www
           npx cap add android
 
-      - name: Set app icon (only if icon.png exists)
-        if: hashFiles('icon.png') != ''
-        continue-on-error: true
+      - name: Set app icon
         run: |
-          mkdir -p assets
-          cp icon.png assets/icon-only.png
-          npm install --save-dev @capacitor/assets@3
-          npx capacitor-assets generate --android --iconBackgroundColor '#080c16' --iconBackgroundColorDark '#080c16'
+          ICON=$(ls | grep -i -E '^icon.*\.png$' | head -1 || true)
+          if [ -z "$ICON" ]; then echo "NO ICON PNG FOUND in repo root - skipping icon"; ls; exit 0; fi
+          echo "Using icon file: $ICON"
+          python3 -m venv /tmp/venv
+          /tmp/venv/bin/pip install pillow
+          cat > /tmp/mkicon.py <<'PYEOF'
+          import sys, os, shutil
+          from PIL import Image, ImageDraw
+          src = Image.open(sys.argv[1]).convert("RGBA")
+          res = "android/app/src/main/res"
+          sizes = {"mdpi": 48, "hdpi": 72, "xhdpi": 96, "xxhdpi": 144, "xxxhdpi": 192}
+          for d, px in sizes.items():
+              folder = f"{res}/mipmap-{d}"
+              os.makedirs(folder, exist_ok=True)
+              sq = src.resize((px, px), Image.LANCZOS)
+              sq.save(f"{folder}/ic_launcher.png")
+              m = Image.new("L", (px, px), 0)
+              ImageDraw.Draw(m).ellipse((0, 0, px - 1, px - 1), fill=255)
+              r = Image.new("RGBA", (px, px), (0, 0, 0, 0))
+              r.paste(sq, (0, 0), m)
+              r.save(f"{folder}/ic_launcher_round.png")
+          shutil.rmtree(f"{res}/mipmap-anydpi-v26", ignore_errors=True)
+          print("icons written")
+          PYEOF
+          /tmp/venv/bin/python /tmp/mkicon.py "$ICON"
 
       - name: Add music scan plugin and permissions
         run: |
