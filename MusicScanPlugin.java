@@ -1,4 +1,4 @@
-package com.miniature.player;
+package com.miniaturemusic.app;
 
 import android.database.Cursor;
 import android.os.Build;
