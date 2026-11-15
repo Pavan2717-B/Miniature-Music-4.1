@@ -1198,13 +1198,13 @@ function genArt(seed){let h=2166136261;for(const ch of String(seed))h=Math.imul(
     if(fresh.length>30&&!(await ask("Add "+fresh.length+" new songs from "+f.name+"?",{ok:"Add"})))return;
     await addFiles(fresh,pm,quiet)}catch(e){f.st="Couldn't read this folder";renderSettings()}}
   async function nativeScan(){
-   try{const P=Capacitor.registerPlugin("MusicScan");toast("Scanning your phone for music…");
+   try{const P=(Capacitor.Plugins&&Capacitor.Plugins.MusicScan)||(Capacitor.registerPlugin?Capacitor.registerPlugin("MusicScan"):null);if(!P)throw new Error("Music scan plugin not found");const cfs=x=>Capacitor.convertFileSrc?Capacitor.convertFileSrc(x):x.replace("file://",location.origin+"/_capacitor_file_");toast("Scanning your phone for music…");
     const r=await P.scan(),L=(r&&r.songs)||[],have=new Set(T.map(t=>t.uid)),fresh=[];
     for(const s of L){const id=s.name+"|"+s.size+"|"+(s.modified*1000);if(have.has(id))continue;have.add(id);fresh.push(s)}
     if(!fresh.length){toast("No new songs found");return}
     if(!(await ask("Add "+fresh.length+" songs found on this phone?",{ok:"Add"})))return;
     let n=0;for(let i=0;i<fresh.length;i+=15){const fl=[],pm=new Map();
-     for(const s of fresh.slice(i,i+15)){try{const url=Capacitor.convertFileSrc("file://"+s.path.split("/").map(encodeURIComponent).join("/"));
+     for(const s of fresh.slice(i,i+15)){try{const url=cfs("file://"+s.path.split("/").map(encodeURIComponent).join("/"));
        const b=await(await fetch(url)).blob(),f=new File([b],s.name,{type:/^audio\//.test(b.type)?b.type:"audio/mpeg",lastModified:s.modified*1000});
        fl.push(f);pm.set(f,s.path.replace(/^\/storage\/emulated\/0\//,""))}catch(e){}}
      if(fl.length)await addFiles(fl,pm,true);n+=fl.length;toast("Added "+n+" of "+fresh.length+"…")}
