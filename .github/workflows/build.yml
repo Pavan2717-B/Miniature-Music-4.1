@@ -29,6 +29,15 @@ jobs:
           npx cap init Miniature com.miniaturemusic.app --web-dir www
           npx cap add android
 
+      - name: Set app icon (only if icon.png exists)
+        if: hashFiles('icon.png') != ''
+        continue-on-error: true
+        run: |
+          mkdir -p assets
+          cp icon.png assets/icon-only.png
+          npm install --save-dev @capacitor/assets@3
+          npx capacitor-assets generate --android --iconBackgroundColor '#080c16' --iconBackgroundColorDark '#080c16'
+
       - name: Add music scan plugin and permissions
         run: |
           JAVA_DIR=android/app/src/main/java/com/miniaturemusic/app
