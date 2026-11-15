@@ -34,6 +34,9 @@ jobs:
           JAVA_DIR=android/app/src/main/java/com/miniaturemusic/app
           mkdir -p $JAVA_DIR
           cp MusicScanPlugin.java MainActivity.java $JAVA_DIR/
+          sed -i 's/^package .*;/package com.miniaturemusic.app;/' $JAVA_DIR/MusicScanPlugin.java $JAVA_DIR/MainActivity.java
+          head -1 $JAVA_DIR/MusicScanPlugin.java $JAVA_DIR/MainActivity.java
+          ls -la $JAVA_DIR
           sed -i 's#<application#<uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />\n    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />\n    <application#' android/app/src/main/AndroidManifest.xml
           grep -n "uses-permission" android/app/src/main/AndroidManifest.xml
 
