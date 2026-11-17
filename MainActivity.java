@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import androidx.activity.OnBackPressedCallback;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
@@ -38,6 +39,20 @@ public class MainActivity extends BridgeActivity {
             return WindowInsetsCompat.CONSUMED;
         });
         ViewCompat.requestApplyInsets(root);
+
+        // Back button / back gesture: close the top screen inside the app (player -> menu); at the menu, minimise (music keeps playing).
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                try {
+                    getBridge().getWebView().evaluateJavascript(
+                        "(function(){try{return window.MiniBack?window.MiniBack():false}catch(e){return false}})()",
+                        value -> { if (!"true".equals(value)) moveTaskToBack(true); });
+                } catch (Exception e) {
+                    moveTaskToBack(true);
+                }
+            }
+        });
     }
 
     private void hideBars() {

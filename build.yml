@@ -102,6 +102,9 @@ jobs:
         run: |
           JAVA_DIR=android/app/src/main/java/com/miniaturemusic/v2
           mkdir -p $JAVA_DIR
+          for f in MusicScanPlugin.java MainActivity.java KeepAliveService.java; do
+            if [ ! -f "$f" ]; then echo "MISSING FILE in repo root: $f - upload it to the main folder"; exit 1; fi
+          done
           cp MusicScanPlugin.java MainActivity.java KeepAliveService.java $JAVA_DIR/
           sed -i 's/^package .*;/package com.miniaturemusic.v2;/' $JAVA_DIR/MusicScanPlugin.java $JAVA_DIR/MainActivity.java $JAVA_DIR/KeepAliveService.java
           head -1 $JAVA_DIR/*.java
