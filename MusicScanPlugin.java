@@ -1,8 +1,13 @@
-package com.miniaturemusic.app;
+package com.miniaturemusic.v2;
 
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.Build;
 import android.provider.MediaStore;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.PermissionState;
@@ -39,6 +44,27 @@ public class MusicScanPlugin extends Plugin {
         } else {
             call.reject("Permission denied. Allow Music and audio access in the app settings.");
         }
+    }
+
+    @PluginMethod
+    public void keepAlive(PluginCall call) {
+        boolean on = Boolean.TRUE.equals(call.getBoolean("on", false));
+        Context c = getContext();
+        Intent i = new Intent(c, KeepAliveService.class);
+        try {
+            if (on) {
+                if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(c, "android.permission.POST_NOTIFICATIONS") != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(getActivity(), new String[] { "android.permission.POST_NOTIFICATIONS" }, 77);
+                }
+                ContextCompat.startForegroundService(c, i);
+            } else {
+                c.stopService(i);
+            }
+        } catch (Exception e) {
+            call.reject("keepAlive failed: " + e.getMessage());
+            return;
+        }
+        call.resolve();
     }
 
     private void doScan(PluginCall call) {
